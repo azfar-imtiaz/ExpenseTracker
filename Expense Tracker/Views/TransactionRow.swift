@@ -23,10 +23,16 @@ struct TransactionRow: View {
                     .opacity(0.7)
                     .lineLimit(1)
                 
-                Text(Date(), format: .dateTime.year().month().day())
+                Text(transaction.parsedDate, format: .dateTime.year().month().day())
                     .font(.footnote)
                     .foregroundColor(.secondary)
             }
+            
+            Spacer()
+            
+            Text(transaction.signedAmount, format: .currency(code: "SEK"))
+                .bold()
+                .foregroundColor(transaction.type == TransactionType.credit.rawValue ? Color.text : .primary)
         }
         .padding(.vertical)
     }
