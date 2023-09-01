@@ -6,16 +6,33 @@
 //
 
 import SwiftUI
+import SwiftUICharts
 
 struct ContentView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
+                    // Title
                     Text("Overview")
-                        .font(.title2)
+                        .font(.title)
                         .bold()
                     
+                    // Line chart
+                    CardView {
+                        VStack {
+                            ChartLabel("$900", type: .largeTitle)
+                            LineChart()
+                                .padding(.horizontal, 2)
+                        }
+                        .background(Color.systemBackground)
+                    }
+                    .data([8, 2, 4, 6, 12, 9, 2])
+                    .chartStyle(ChartStyle(backgroundColor: Color.systemBackground, foregroundColor: ColorGradient(Color.icon.opacity(0.4), Color.icon)))
+                    .frame(height: 300)
+                    
+                    
+                    // Recent most 5 transactions
                     RecentTransactionsList()
                 }
                 .padding()
