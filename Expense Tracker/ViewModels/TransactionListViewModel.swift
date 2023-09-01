@@ -10,6 +10,7 @@ import Combine
 import Collections
 
 typealias TransactionGroup = OrderedDictionary<String, [Transaction]>
+typealias TransactionPrefixSum = [(String, Double)]
 
 final class TransactionListViewModel: ObservableObject {
     @Published var transactions: [Transaction] = []
@@ -55,5 +56,27 @@ final class TransactionListViewModel: ObservableObject {
             return [:]
         }
         return TransactionGroup(grouping: transactions, by: { $0.month })
+    }
+    
+    func accumulateTransactions() -> TransactionPrefixSum {
+        guard !transactions.isEmpty else {
+            return []
+        }
+        let selectedDate = "02/17/2022".parseDate() // Ideally, we should have the current date here, for real-time data
+        let dateInterval = Calendar.current.dateInterval(of: .month, for: selectedDate)!
+        
+        var sum: Double = .zero
+        var cumulativeSum = TransactionPrefixSum()
+        
+        // Here we calculate the sum of expenses per day from the start of the month in selectedDate to the selectedDate day
+        // The per day part is specified by the 60 * 60 * 24, which is 60 seconds * 60 minutes * 24 hours = one day
+        for date in stride(from: dateInterval.start, to: selectedDate, by: 60 * 60 * 24) {
+            let dailyExpenses = transactions.filter({ $0.parsedDate == date && $0.isExpense })
+            let dailyTotal = dailyExpenses.reduce(0) { $0 - $1.signedAmount }
+            
+            sum += dailyTotal.rounded()
+            cumulativeSum.append((date.formatted(.dateTime.year().month().day()), sum))
+        }
+        return cumulativeSum
     }
 }

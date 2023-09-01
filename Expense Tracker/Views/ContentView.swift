@@ -9,6 +9,8 @@ import SwiftUI
 import SwiftUICharts
 
 struct ContentView: View {
+    @EnvironmentObject var transactionListViewModel: TransactionListViewModel
+    
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -18,18 +20,25 @@ struct ContentView: View {
                         .font(.title)
                         .bold()
                     
-                    // Line chart
-                    CardView {
-                        VStack {
-                            ChartLabel("$900", type: .largeTitle)
-                            LineChart()
-                                .padding(.horizontal, 2)
+                    // Line chart                    
+                    let data = transactionListViewModel.accumulateTransactions()
+                    
+                    if !data.isEmpty {
+                        // get the second element of the last tuple in the list, which is basically the cumulative sum up until the selected date
+                        let totalExpenses = data.last?.1 ?? 0
+                        
+                        CardView {
+                            VStack(alignment: .leading) {
+                                ChartLabel(totalExpenses.formatted(.currency(code: "SEK")), type: .largeTitle, format: "%.02f kr")
+                                LineChart()
+                                    .padding(.horizontal, 2)
+                            }
+                            .background(Color.systemBackground)
                         }
-                        .background(Color.systemBackground)
+                        .data(data)
+                        .chartStyle(ChartStyle(backgroundColor: Color.systemBackground, foregroundColor: ColorGradient(Color.icon.opacity(0.4), Color.icon)))
+                        .frame(height: 300)
                     }
-                    .data([8, 2, 4, 6, 12, 9, 2])
-                    .chartStyle(ChartStyle(backgroundColor: Color.systemBackground, foregroundColor: ColorGradient(Color.icon.opacity(0.4), Color.icon)))
-                    .frame(height: 300)
                     
                     
                     // Recent most 5 transactions
