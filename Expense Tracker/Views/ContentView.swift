@@ -9,6 +9,9 @@ import SwiftUI
 import SwiftUICharts
 
 struct ContentView: View {
+    @State private var selectedMonth: String = "Select month"
+    @State private var totalExpenses: Double = 0.0
+    @State private var data: TransactionPrefixSum = []
     @EnvironmentObject var transactionListViewModel: TransactionListViewModel
     
     var body: some View {
@@ -20,16 +23,36 @@ struct ContentView: View {
                         .font(.title)
                         .bold()
                     
-                    // Line chart                    
-                    let data = transactionListViewModel.accumulateTransactions()
+                    let transactionArray = transactionListViewModel.groupTransactionsByMonth().map { (key, value) in
+                        return (key, value)
+                    }
+                    
+                    Menu(selectedMonth) {
+                        ForEach(transactionArray, id: \.0) { month, _ in
+                            Button(action: {
+                                self.selectedMonth = month
+                                self.data = transactionListViewModel.accumulateTransactions(month: self.selectedMonth)
+                                self.totalExpenses = self.data.last?.1 ?? 0
+                                print(self.totalExpenses)
+                            }) {
+                                Text(month)
+                            }
+                            .buttonStyle(BorderedButtonStyle())
+                        }
+                    }
+                    .menuStyle(BorderlessButtonMenuStyle())
+                    
+                    // Line chart
+                    // let data = transactionListViewModel.accumulateTransactions(month: self.selectedMonth)
                     
                     if !data.isEmpty {
                         // get the second element of the last tuple in the list, which is basically the cumulative sum up until the selected date
-                        let totalExpenses = data.last?.1 ?? 0
+                        // let totalExpenses = data.last?.1 ?? 0
                         
                         CardView {
                             VStack(alignment: .leading) {
-                                ChartLabel(totalExpenses.formatted(.currency(code: "SEK")), type: .largeTitle, format: "%.02f kr")
+                                ChartLabel(self.totalExpenses.formatted(.currency(code: "SEK")), type: .largeTitle, format: "%.02f kr")
+                                    .id(self.totalExpenses)
                                 LineChart()
                                     .padding(.horizontal, 2)
                             }

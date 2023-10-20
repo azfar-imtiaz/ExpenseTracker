@@ -11,17 +11,17 @@ import SwiftUIFontIcon
 struct Transaction: Identifiable, Decodable, Hashable {
     let id: Int
     let date: String
-    let institution: String
+    let description: String
     let account: String
     var merchant: String
     let amount: Double
     let type: TransactionType.RawValue
     var categoryId: Int
     var category: String
-    let isPending: Bool
-    var isTransfer: Bool
+//    let isPending: Bool
+//    var isTransfer: Bool
     var isExpense: Bool
-    var isEdited: Bool
+//    var isEdited: Bool
     
     var icon: FontAwesomeCode {
         if let category = Category.all.first(where: { $0.id == categoryId }) {

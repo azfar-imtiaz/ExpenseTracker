@@ -19,14 +19,20 @@ extension Color {
 extension DateFormatter {
     static let allNumericUSA: DateFormatter = {
         let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd/yyyy"        
+        formatter.dateFormat = "yyyy-MM-dd"        
         return formatter
     }()
 }
 
 extension String {
     func parseDate() -> Date {
-        guard let parsedDate = DateFormatter.allNumericUSA.date(from: self) else { return Date() }
-        return parsedDate
+        let parsedDate = DateFormatter.allNumericUSA.date(from: self)
+        if parsedDate != nil {
+            return parsedDate!
+        } else {
+            return Date()
+        }
+//        guard let parsedDate = DateFormatter.allNumericUSA.date(from: self) else { return Date() }
+//        return parsedDate
     }
 }
