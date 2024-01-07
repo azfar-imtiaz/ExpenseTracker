@@ -8,6 +8,8 @@
 import Foundation
 import Combine
 import Collections
+import CoreML
+import NaturalLanguage
 
 typealias TransactionGroup = OrderedDictionary<String, [Transaction]>
 typealias TransactionPrefixSum = [(String, Double)]
@@ -38,12 +40,18 @@ final class TransactionListViewModel: ObservableObject {
     func getTransactions() {
         if let fileURL = Bundle.main.url(forResource: "Transaktioner_2023-09-12_19-20-18", withExtension: "csv") {
             do {
+                //                let mlModel = try transactionCategorizer(configuration: MLModelConfiguration()).model
+                //                let transactionClassifier = try NLModel(mlModel: mlModel)
+                let config = MLModelConfiguration()
+                let transactionClassifier = try transactionCategorizer(configuration: config)
+                
                 let text = try String(contentsOf: fileURL, encoding: .ascii)
                 let lines = text.split(whereSeparator: \.isNewline)
                 for index in 2..<lines.count {
                     let line = lines[index]
                     let elements = line.split(separator: ",").map(String.init).filter { $0 != "\"" }
-                    // TODO: Replace institution with description
+                    let predictedCategory = try transactionClassifier.prediction(text: elements[9])
+                    print(predictedCategory.label)
                     let transactionObject = Transaction(
                         id: Int(elements[0])!,
                         date: elements[5],
@@ -52,8 +60,12 @@ final class TransactionListViewModel: ObservableObject {
                         merchant: elements[8].replacingOccurrences(of: "\"", with: ""),
                         amount: abs(Double(elements[10])!),
                         type: (Double(elements[10])! > 0 ? TransactionType.credit : TransactionType.debit).rawValue,
-                        categoryId: 4,
-                        category: "Finance Charge",
+                        // TODO: Change this!
+                        // categoryId: 4,
+                        categoryId: Category.retrieveCategoryID(categoryTitle: predictedCategory.label),
+                        // category: "Finance Charge",
+                        // category: transactionClassifier.predictedLabel(for: elements[9]) ?? "Finance Charge",
+                        category: predictedCategory.label,
                         isExpense: Double(elements[10])! > 0 ? false : true
                     )
                     transactions.append(transactionObject)
@@ -64,33 +76,33 @@ final class TransactionListViewModel: ObservableObject {
         }
         
         
-//        guard let url = URL(string: "https://designcode.io/data/transactions.json") else {
-//            print("Invalid URL!")
-//            return
-//        }
-//
-//        URLSession.shared.dataTaskPublisher(for: url)
-//            .tryMap { (data, response) -> Data in
-//                guard let httpResposnse = response as? HTTPURLResponse, httpResposnse.statusCode == 200 else {
-//                    dump(response)
-//                    throw URLError(.badServerResponse)
-//                }
-//
-//                return data
-//            }
-//            .decode(type: [Transaction].self, decoder: JSONDecoder())
-//            .receive(on: DispatchQueue.main)
-//            .sink { completion in
-//                switch completion {
-//                case .failure(let error):
-//                    print("Error while fetching transactions: ", error.localizedDescription)
-//                case .finished:
-//                    print("Finished fetching transactions!")
-//                }
-//            } receiveValue: { [weak self] result in
-//                self?.transactions = result
-//            }
-//            .store(in: &cancellables)
+        //        guard let url = URL(string: "https://designcode.io/data/transactions.json") else {
+        //            print("Invalid URL!")
+        //            return
+        //        }
+        //
+        //        URLSession.shared.dataTaskPublisher(for: url)
+        //            .tryMap { (data, response) -> Data in
+        //                guard let httpResposnse = response as? HTTPURLResponse, httpResposnse.statusCode == 200 else {
+        //                    dump(response)
+        //                    throw URLError(.badServerResponse)
+        //                }
+        //
+        //                return data
+        //            }
+        //            .decode(type: [Transaction].self, decoder: JSONDecoder())
+        //            .receive(on: DispatchQueue.main)
+        //            .sink { completion in
+        //                switch completion {
+        //                case .failure(let error):
+        //                    print("Error while fetching transactions: ", error.localizedDescription)
+        //                case .finished:
+        //                    print("Finished fetching transactions!")
+        //                }
+        //            } receiveValue: { [weak self] result in
+        //                self?.transactions = result
+        //            }
+        //            .store(in: &cancellables)
     }
     
     func groupTransactionsByMonth() -> TransactionGroup {
@@ -98,6 +110,12 @@ final class TransactionListViewModel: ObservableObject {
             return [:]
         }
         return TransactionGroup(grouping: transactions, by: { $0.month })
+    }
+    
+    func getTransactionsByMonth(month: String) -> [Transaction] {
+        let transactionsByMonth = TransactionGroup(grouping: transactions, by: { $0.month })
+        let selectedMonthTransactions = transactionsByMonth.filter { $0.key == month }.map { $0.value }
+        return selectedMonthTransactions[0]
     }
     
     func accumulateTransactions(month: String) -> TransactionPrefixSum {

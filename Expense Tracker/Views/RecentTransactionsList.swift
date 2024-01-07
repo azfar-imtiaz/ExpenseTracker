@@ -9,6 +9,7 @@ import SwiftUI
 
 struct RecentTransactionsList: View {
     @EnvironmentObject var transactionListViewModel: TransactionListViewModel
+    var month: String
     
     var body: some View {
         VStack {
@@ -30,10 +31,18 @@ struct RecentTransactionsList: View {
             }
             .padding(.top)
             
-            ForEach(Array(transactionListViewModel.transactions.prefix(5).enumerated()), id: \.element) { index, transaction in
-                TransactionRow(transaction: transaction)
-
-                Divider().opacity(index == 4 ? 0 : 1)
+            if !month.isEmpty {
+                ForEach(Array(transactionListViewModel.getTransactionsByMonth(month: month).prefix(5).enumerated()), id: \.element) { index, transaction in
+                    TransactionRow(transaction: transaction)
+                    
+                    Divider().opacity(index == 4 ? 0 : 1)
+                }
+            } else {
+                ForEach(Array(transactionListViewModel.transactions.prefix(5).enumerated()), id: \.element) { index, transaction in
+                    TransactionRow(transaction: transaction)
+                    
+                    Divider().opacity(index == 4 ? 0 : 1)
+                }
             }
         }
         .padding()
@@ -52,8 +61,8 @@ struct RecentTransactionsList_Previews: PreviewProvider {
 
     static var previews: some View {
         Group {
-            RecentTransactionsList()
-            RecentTransactionsList()
+            RecentTransactionsList(month: "")
+            RecentTransactionsList(month: "")
                 .preferredColorScheme(.dark)
         }
         .environmentObject(transactionListViewModel)

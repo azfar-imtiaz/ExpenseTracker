@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftUICharts
 
 struct ContentView: View {
-    @State private var selectedMonth: String = "Select month"
+    @State private var selectedMonth: String = ""
     @State private var totalExpenses: Double = 0.0
     @State private var data: TransactionPrefixSum = []
     @EnvironmentObject var transactionListViewModel: TransactionListViewModel
@@ -27,25 +27,53 @@ struct ContentView: View {
                         return (key, value)
                     }
                     
-                    Menu(selectedMonth) {
+                    Picker("Select month", selection: $selectedMonth) {
                         ForEach(transactionArray, id: \.0) { month, _ in
-                            Button(action: {
+                            Button {
                                 self.selectedMonth = month
-                                self.data = transactionListViewModel.accumulateTransactions(month: self.selectedMonth)
-                                self.totalExpenses = self.data.last?.1 ?? 0
-                                print(self.totalExpenses)
-                            }) {
+                                self.data = transactionListViewModel.accumulateTransactions(month: selectedMonth)
+                                self.totalExpenses = data.last?.1 ?? 0
+                                print(totalExpenses)
+                            } label: {
                                 Text(month)
                             }
-                            .buttonStyle(BorderedButtonStyle())
                         }
                     }
-                    .menuStyle(BorderlessButtonMenuStyle())
+                    .padding(5)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(.primary)
+                    )
+                    .onAppear {
+                        if let firstMonth = transactionArray.first {
+                            selectedMonth = firstMonth.0
+                            self.data = transactionListViewModel.accumulateTransactions(month: selectedMonth)
+                            self.totalExpenses = data.last?.1 ?? 0
+                        }
+                    }
+                    .onChange(of: selectedMonth) { newMonth in
+                        selectedMonth = newMonth
+                        self.data = transactionListViewModel.accumulateTransactions(month: newMonth)
+                        self.totalExpenses = data.last?.1 ?? 0
+                    }
                     
-                    // Line chart
-                    // let data = transactionListViewModel.accumulateTransactions(month: self.selectedMonth)
+//                        Menu(selectedMonth) {
+//                            ForEach(transactionArray, id: \.0) { month, _ in
+//                                Button(action: {
+//                                    self.selectedMonth = month
+//                                    self.data = transactionListViewModel.accumulateTransactions(month: self.selectedMonth)
+//                                    self.totalExpenses = self.data.last?.1 ?? 0
+//                                    print(self.totalExpenses)
+//                                }) {
+//                                    Text(month)
+//                                        .font(.title3.bold())
+//                                }
+//                                .buttonStyle(BorderedButtonStyle())
+//                            }
+//                        }
+//                        .menuStyle(BorderlessButtonMenuStyle())
                     
-                    if !data.isEmpty {
+                    if !self.data.isEmpty {
                         // get the second element of the last tuple in the list, which is basically the cumulative sum up until the selected date
                         // let totalExpenses = data.last?.1 ?? 0
                         
@@ -63,9 +91,8 @@ struct ContentView: View {
                         .frame(height: 300)
                     }
                     
-                    
                     // Recent most 5 transactions
-                    RecentTransactionsList()
+                    RecentTransactionsList(month: selectedMonth)
                 }
                 .padding()
                 .frame(maxWidth: .infinity)
