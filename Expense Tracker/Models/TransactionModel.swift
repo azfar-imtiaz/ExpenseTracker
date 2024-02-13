@@ -115,6 +115,33 @@ extension Category {
             return 4
         }
     }
+    
+    static func retrieveCategoryTitle(categoryID: Int) -> String {
+        switch categoryID {
+        case 0:
+            return "Auto & Transport"
+        case 1:
+            return "Bills & Utilities"
+        case 2:
+            return "Entertainment"
+        case 3:
+            return "Fees & Charges"
+        case 4:
+            return "Food & Dining"
+        case 5:
+            return "Home"
+        case 6:
+            return "Income"
+        case 7:
+            return "Shopping"
+        case 8:
+            return "Transfer"
+        default:
+            return "Fees & Charges"
+            
+        }
+    }
+    
     static let categories: [Category] = [
         .autoAndTransport,
         .billsAndUtilities,
