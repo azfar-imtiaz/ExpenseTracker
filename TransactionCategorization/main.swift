@@ -70,17 +70,6 @@ func convertTransactionsInstancesToJSON(transactions: [TransactionInstance]) -> 
     return transactions.map { transaction in
         return ["text": transaction.text, "value": transaction.value]
     }
-    
-    /* var transactionsJSON: [Data] = []
-    for transaction in transactions {
-        do {
-            let transactionInstanceJSON = try JSONEncoder().encode(transaction)
-            transactionsJSON.append(transactionInstanceJSON)
-        } catch {
-            print(error)
-        }
-    }
-    return transactionsJSON */
 }
 
 let filename: String = "/Users/azfar/iOSProjects/Expense Tracker/training_data.txt"
