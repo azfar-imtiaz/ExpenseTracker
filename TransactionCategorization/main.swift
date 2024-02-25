@@ -46,32 +46,8 @@ func loadTrainingData(filename: String) -> [TransactionInstance] {
     return transactions
 }
 
-func preprocessTrainingData(transactions: [TransactionInstance]) -> [TransactionInstance] {
-    var processedTransactions: [TransactionInstance] = []
-    for transaction in transactions {
-        var text = transaction.text
-        var value = transaction.value
-        
-        if (text.contains("Västtrafik")) {
-            value = "Auto & Transport"
-        }
-        
-        if let regex = try? NSRegularExpression(pattern: "[+\\d]+") {
-            text = regex.stringByReplacingMatches(in: text,
-                                                  range: NSRange(location: 0, length: text.count),
-                                                  withTemplate: "number")
-        }
-        processedTransactions.append(TransactionInstance(text: text, value: value))
-    }
-    return processedTransactions
-}
-
-func convertTransactionsInstancesToJSON(transactions: [TransactionInstance]) -> [Dictionary<String, String>] {
-    return transactions.map { transaction in
-        return ["text": transaction.text, "value": transaction.value]
-    }
-    
-    /* var transactionsJSON: [Data] = []
+func convertTransactionsInstancesToJSON(transactions: [TransactionInstance]) -> [Data] {
+    var transactionsJSON: [Data] = []
     for transaction in transactions {
         do {
             let transactionInstanceJSON = try JSONEncoder().encode(transaction)
@@ -80,19 +56,18 @@ func convertTransactionsInstancesToJSON(transactions: [TransactionInstance]) -> 
             print(error)
         }
     }
-    return transactionsJSON */
+    return transactionsJSON
 }
 
 let filename: String = "/Users/azfar/iOSProjects/Expense Tracker/training_data.txt"
 let trainingTransactions = loadTrainingData(filename: filename)
-let processedTransactions = preprocessTrainingData(transactions: trainingTransactions)
-let transactionsJSON = convertTransactionsInstancesToJSON(transactions: processedTransactions)
-print(transactionsJSON)
+let transactionsJson = convertTransactionsInstancesToJSON(transactions: trainingTransactions)
+print(transactionsJson)
 
 let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("transactions.json")
 
 do {
-    let jsonData = try JSONSerialization.data(withJSONObject: transactionsJSON, options: .prettyPrinted)
+    let jsonData = try JSONSerialization.data(withJSONObject: transactionsJson, options: .prettyPrinted)
     
     try jsonData.write(to: fileURL)
     

@@ -33,24 +33,15 @@ final class TransactionListViewModel: ObservableObject {
         "December": "12",
     ]
     
-    private var vectorizer: CountVectorizer
-    
     init() {
-        vectorizer = CountVectorizer(vocabulary: CountVectorizer.getVocabulary(), tokenizer: NLTokenizer())
         getTransactions()
     }
     
     func getTransactions() {
         if let fileURL = Bundle.main.url(forResource: "Transaktioner_2023-09-12_19-20-18", withExtension: "csv") {
             do {
-                // let mlModel = try transactionCategorizer(configuration: MLModelConfiguration()).model
-                // let transactionClassifier = try NLModel(mlModel: mlModel)
-                
-                // let config = MLModelConfiguration()
-                // let transactionClassifier = try transactionCategorizer(configuration: config)
-                
                 let config = MLModelConfiguration()
-                let transactionClassifier = try transactionClassifier_coreml(configuration: config)
+                let transactionClassifier = try transactionCategorizer(configuration: config)
                 
                 let text = try String(contentsOf: fileURL, encoding: .ascii)
                 let lines = text.split(whereSeparator: \.isNewline)
@@ -58,40 +49,24 @@ final class TransactionListViewModel: ObservableObject {
                     let line = lines[index]
                     let elements = line.split(separator: ",").map(String.init).filter { $0 != "\"" }
                     
-                    var transactionText = elements[9]
-                    // apply the same preprocessing to text as in Python script
-                    transactionText = CountVectorizer.preprocessText(text: transactionText)
+                    let transactionText = elements[9]
+                    let predictedCategory = try transactionClassifier.prediction(text: transactionText)
                     
-                    let vector = vectorizer.vectorize(text: transactionText)
-                    let mlMultiArray = try? MLMultiArray(vector)
+                    print(predictedCategory.label)
+                    let transactionObject = Transaction(
+                        id: Int(elements[0])!,
+                        date: elements[5],
+                        description: elements[9].replacingOccurrences(of: "\"", with: ""),
+                        account: elements[2],
+                        merchant: elements[8].replacingOccurrences(of: "\"", with: ""),
+                        amount: abs(Double(elements[10])!),
+                        type: (Double(elements[10])! > 0 ? TransactionType.credit : TransactionType.debit).rawValue,
+                        categoryId: Category.retrieveCategoryID(categoryTitle: predictedCategory.label),
+                        category: predictedCategory.label,
+                        isExpense: Double(elements[10])! > 0 ? false : true
+                    )
+                    transactions.append(transactionObject)
                     
-                    // TODO: Create new branch, revert code to using Swift's ML there, and save it there
-                    // TODO: Then revert back to this branch and continue
-                    // TODO: Try to rename this branch
-                    
-                    // let predictedCategory = try transactionClassifier.prediction(text: elements[9])
-                    if nil != mlMultiArray {
-                        let predictedCategory = try transactionClassifier.prediction(input: mlMultiArray!)
-                        // print(predictedCategory.label)
-                        print(predictedCategory.classLabel)
-                        let transactionObject = Transaction(
-                            id: Int(elements[0])!,
-                            date: elements[5],
-                            description: elements[9].replacingOccurrences(of: "\"", with: ""),
-                            account: elements[2],
-                            merchant: elements[8].replacingOccurrences(of: "\"", with: ""),
-                            amount: abs(Double(elements[10])!),
-                            type: (Double(elements[10])! > 0 ? TransactionType.credit : TransactionType.debit).rawValue,
-                            // categoryId: 4,
-                            // categoryId: Category.retrieveCategoryID(categoryTitle: predictedCategory.classLabel),
-                            categoryId: Int(predictedCategory.classLabel) + 1,
-                            // category: "Finance Charge",
-                            // category: predictedCategory.classLabel,
-                            category: Category.retrieveCategoryTitle(categoryID: Int(predictedCategory.classLabel)),
-                            isExpense: Double(elements[10])! > 0 ? false : true
-                        )
-                        transactions.append(transactionObject)
-                    }
                 }
             } catch {
                 print("Error processing: \(fileURL): \(error)")
