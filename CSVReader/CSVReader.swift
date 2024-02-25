@@ -8,7 +8,12 @@
 import Foundation
 
 func readCSV() {
-    Bundle.main.url(forResource: "Transaktioner_2023-09-12_19-20-18", withExtension: "csv")
+    if let filename = Bundle.main.url(forResource: "Transaktioner_2023-09-12_19-20-18", withExtension: "csv") {
+        print(filename)
+    } else {
+        print("File not found in bundle!")
+    }
+    
     let filename: String = "/Users/azfar/Downloads/Transaktioner_2023-09-12_19-20-18.csv"
     
     var transactions: [Dictionary<String, Any>] = []
