@@ -59,11 +59,15 @@ final class TransactionListViewModel: ObservableObject {
                     let elements = line.split(separator: ",").map(String.init).filter { $0 != "\"" }
                     
                     var transactionText = elements[9]
-                    transactionText = CountVectorizer.preprocessText(text: transactionText)
                     // apply the same preprocessing to text as in Python script
+                    transactionText = CountVectorizer.preprocessText(text: transactionText)
                     
                     let vector = vectorizer.vectorize(text: transactionText)
                     let mlMultiArray = try? MLMultiArray(vector)
+                    
+                    // TODO: Create new branch, revert code to using Swift's ML there, and save it there
+                    // TODO: Then revert back to this branch and continue
+                    // TODO: Try to rename this branch
                     
                     // let predictedCategory = try transactionClassifier.prediction(text: elements[9])
                     if nil != mlMultiArray {

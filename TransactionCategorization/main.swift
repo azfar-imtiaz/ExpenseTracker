@@ -6,8 +6,9 @@
 //
 
 import Foundation
+import CreateML
 
-struct TransactionInstance {
+struct TransactionInstance: Encodable {
     var text: String
     var value: String
 }
@@ -65,7 +66,56 @@ func preprocessTrainingData(transactions: [TransactionInstance]) -> [Transaction
     return processedTransactions
 }
 
+func convertTransactionsInstancesToJSON(transactions: [TransactionInstance]) -> [Dictionary<String, String>] {
+    return transactions.map { transaction in
+        return ["text": transaction.text, "value": transaction.value]
+    }
+    
+    /* var transactionsJSON: [Data] = []
+    for transaction in transactions {
+        do {
+            let transactionInstanceJSON = try JSONEncoder().encode(transaction)
+            transactionsJSON.append(transactionInstanceJSON)
+        } catch {
+            print(error)
+        }
+    }
+    return transactionsJSON */
+}
+
 let filename: String = "/Users/azfar/iOSProjects/Expense Tracker/training_data.txt"
 let trainingTransactions = loadTrainingData(filename: filename)
 let processedTransactions = preprocessTrainingData(transactions: trainingTransactions)
-print(processedTransactions)
+let transactionsJSON = convertTransactionsInstancesToJSON(transactions: processedTransactions)
+print(transactionsJSON)
+
+let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("transactions.json")
+
+do {
+    let jsonData = try JSONSerialization.data(withJSONObject: transactionsJSON, options: .prettyPrinted)
+    
+    try jsonData.write(to: fileURL)
+    
+    let data = try MLDataTable(contentsOf: URL(fileURLWithPath: fileURL.path))
+    print(data)
+    
+    let (trainingData, testingData) = data.randomSplit(by: 0.8, seed: 5)
+    
+    let categoryClassifier = try MLTextClassifier(trainingData: trainingData, textColumn: "text", labelColumn: "value")
+    
+    let trainingAccuracy = (1.0 - categoryClassifier.trainingMetrics.classificationError) * 100
+    print("Training accuracy: \(trainingAccuracy)")
+    let validationAccurary = (1.0 - categoryClassifier.validationMetrics.classificationError) * 100
+    print("Validation accuracy: \(validationAccurary)")
+    
+    let evaluationMetrics = categoryClassifier.evaluation(on: testingData, textColumn: "text", labelColumn: "value")
+    let evaluationAccuracy = (1.0 - evaluationMetrics.classificationError) * 100
+    
+    print("Evaluation accuracy: \(evaluationAccuracy)")
+    
+    let metadata = MLModelMetadata(author: "Azfar Imtiaz", shortDescription: "A model trained to categorize bank transactions", version: "1.0")
+    try categoryClassifier.write(to: URL(filePath: "/Users/azfar/iOSProjects/Expense Tracker/transactionCategorizer.mlmodel"), metadata: metadata)
+        
+} catch {
+    print(error)
+}
