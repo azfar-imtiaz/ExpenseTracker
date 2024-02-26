@@ -67,7 +67,7 @@ The Python code can be found in the folder "PythonScripts" in the "classify_skle
 I consider it best to upload a bunch of screenshots to show the app's layout and working. 
 <br><br><br>
 
-<h3 align="center">Main view</h3>
+<h3 align="center">Home view</h3>
 <p float="left" align="center">
   <kbd>
     <img src="screenshots/home_light.png" width="250">
@@ -110,18 +110,18 @@ I consider it best to upload a bunch of screenshots to show the app's layout and
   <kbd>
     <img src="screenshots/recent_transactions_light.png" width="250">
     <br><br>
-    <em>Recent transactions - light</em>
+    <em>Recent transactions (light mode)</em>
   </kbd>
   
   <kbd>
     <img src="screenshots/recent_transactions_dark.png" width="250">
     <br><br>
-    <em>Recent transactions - dark</em>
+    <em>Recent transactions (dark mode)</em>
   </kbd>
 </p>
 
 <br><br>
-<h3 align="center">All transactions</h3>
+<h3 align="center">All transactions (light mode)</h3>
 <p float="left" align="center">
   <kbd>
     <img src="screenshots/all_transactions.png" width="250">
@@ -134,17 +134,21 @@ I consider it best to upload a bunch of screenshots to show the app's layout and
     <br><br>
     <em>All transactions - August</em>
   </kbd>
-  
+</p>
+
+<br><br>
+<h3 align="center">All transactions (dark mode)</h3>
+<p float="left" align="center">
   <kbd>
     <img src="screenshots/all_transactions_dark.png" width="250">
     <br><br>
-    <em>All transactions - dark</em>
+    <em>All transactions</em>
   </kbd> 
   
   <kbd>
     <img src="screenshots/all_transactions_2_dark.png" width="250">
     <br><br>
-    <em>All transactions - August - dark</em>
+    <em>All transactions - August</em>
   </kbd> 
 </p>
 
